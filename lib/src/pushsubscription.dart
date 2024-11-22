@@ -2,8 +2,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:onesignal_flutter/src/subscription.dart';
 
-typedef void OnPushSubscriptionChangeObserver(
-    OSPushSubscriptionChangedState stateChanges);
+typedef void OnPushSubscriptionChangeObserver(OSPushSubscriptionChangedState stateChanges);
 
 class OneSignalPushSubscription {
   MethodChannel _channel = const MethodChannel('OneSignal#pushsubscription');
@@ -12,8 +11,7 @@ class OneSignalPushSubscription {
   String? _token;
   bool? _optedIn;
 
-  List<OnPushSubscriptionChangeObserver> _observers =
-      <OnPushSubscriptionChangeObserver>[];
+  List<OnPushSubscriptionChangeObserver> _observers = <OnPushSubscriptionChangeObserver>[];
   // constructor method
   OneSignalPushSubscription() {
     this._channel.setMethodCallHandler(_handleMethod);
@@ -42,12 +40,14 @@ class OneSignalPushSubscription {
   /// push notifications permission.
   Future<void> optIn() async {
     await _channel.invokeMethod("OneSignal#optIn");
+    _optedIn = await _channel.invokeMethod("OneSignal#pushSubscriptionOptedIn");
   }
 
   /// If at any point you want the user to stop receiving push notifications on the current
   /// device (regardless of system-level permission status), you can call this method to opt out.
   Future<void> optOut() async {
     await _channel.invokeMethod("OneSignal#optOut");
+    _optedIn = await _channel.invokeMethod("OneSignal#pushSubscriptionOptedIn");
   }
 
   /// The OSPushSubscriptionObserver.onOSPushSubscriptionChanged method will be fired on the passed-in
@@ -72,14 +72,12 @@ class OneSignalPushSubscription {
   // Private function that gets called by ObjC/Java
   Future<Null> _handleMethod(MethodCall call) async {
     if (call.method == 'OneSignal#onPushSubscriptionChange') {
-      this._onPushSubscriptionChange(OSPushSubscriptionChangedState(
-          call.arguments.cast<String, dynamic>()));
+      this._onPushSubscriptionChange(OSPushSubscriptionChangedState(call.arguments.cast<String, dynamic>()));
     }
     return null;
   }
 
-  void _onPushSubscriptionChange(
-      OSPushSubscriptionChangedState stateChanges) async {
+  void _onPushSubscriptionChange(OSPushSubscriptionChangedState stateChanges) async {
     this._id = stateChanges.current.id;
     this._token = stateChanges.current.token;
     this._optedIn = stateChanges.current.optedIn;
